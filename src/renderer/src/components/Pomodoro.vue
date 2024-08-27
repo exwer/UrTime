@@ -1,13 +1,5 @@
-<template>
-  <!-- 显示倒计时，并在休息模式下显示休息按钮 -->
-  <div class="pomodoro-timer">
-    <h1>{{ formattedTime }}</h1>
-    <button v-if="isBreak && !isRunning" @click="startTimer">开始休息</button>
-  </div>
-</template>
-
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 // 初始化时间（秒）
 const workTime = 1 * 10
@@ -18,7 +10,7 @@ const longBreakTime = 15 * 60
 const timeLeft = ref(workTime)
 const isRunning = ref(true)
 const isBreak = ref(false)
-const workSessions = ref(0)  // 记录已完成的工作周期数
+const workSessions = ref(0) // 记录已完成的工作周期数
 let intervalId = null
 
 // 计算属性：将剩余时间格式化为 MM:SS
@@ -29,60 +21,63 @@ const formattedTime = computed(() => {
 })
 
 // 启动计时器
-const startTimer = () => {
+function startTimer() {
   isRunning.value = true
   intervalId = setInterval(() => {
     if (timeLeft.value > 0) {
       timeLeft.value--
-    } else {
-      handleEndOfSession()  // 时间结束时触发相应函数
+    }
+    else {
+      handleEndOfSession() // 时间结束时触发相应函数
     }
   }, 1000)
 }
 
 // 停止计时器
-const stopTimer = () => {
+function stopTimer() {
   clearInterval(intervalId)
   isRunning.value = false
 }
 
 // 处理计时结束的逻辑
-const handleEndOfSession = () => {
+function handleEndOfSession() {
   if (isBreak.value) {
     // 如果在休息模式，切换到工作模式
     switchToWorkMode()
-  } else {
+  }
+  else {
     // 如果在工作模式，记录一个工作周期，并切换到休息模式
     workSessions.value++
     if (workSessions.value % 2 === 0) {
       // 每两次工作周期进行一次大休息
       switchToLongBreakMode()
-    } else {
+    }
+    else {
       switchToShortBreakMode()
     }
   }
 }
 
 // 切换到工作模式
-const switchToWorkMode = () => {
+function switchToWorkMode() {
   isBreak.value = false
   timeLeft.value = workTime
 }
 
 // 切换到短休息模式
-const switchToShortBreakMode = () => {
+function switchToShortBreakMode() {
   isBreak.value = true
   timeLeft.value = shortBreakTime
   stopTimer()
-  startTimer()  // 立即开始倒计时
+  startTimer() // 立即开始倒计时
 }
 
 // 切换到长休息模式
-const switchToLongBreakMode = () => {
+function switchToLongBreakMode() {
   isBreak.value = true
   timeLeft.value = longBreakTime
   stopTimer()
-  startTimer()  // 立即开始倒计时
+  startTimer() // 立即开始倒计时
 }
 
 // 组件挂载时启动计时器
@@ -90,6 +85,16 @@ onMounted(() => {
   startTimer()
 })
 </script>
+
+<template>
+  <!-- 显示倒计时，并在休息模式下显示休息按钮 -->
+  <div class="pomodoro-timer">
+    <h1>{{ formattedTime }}</h1>
+    <button v-if="isBreak && !isRunning" @click="startTimer">
+      开始休息
+    </button>
+  </div>
+</template>
 
 <style scoped>
 .pomodoro-timer {
@@ -110,5 +115,4 @@ button {
   border: none;
   border-radius: 5px;
 }
-
 </style>

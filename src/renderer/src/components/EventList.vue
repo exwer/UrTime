@@ -1,74 +1,108 @@
-<template>
-  <div class="event-list">
-    <!-- 显示事件列表 -->
-    <ul>
-      <li v-for="(event, index) in events" :key="index">
-        <input
-          v-show="editingIndex === index"
-          v-model="event.name"
-          @keyup.enter="finishEditing"
-          @blur="finishEditing"
-          ref="eventInputs"
-        />
-        <span v-show="editingIndex !== index">{{ event.name }}</span>
-        <button @click="editEvent(index)">编辑</button>
-        <button @click="removeEvent(index)" @mousedown.prevent>删除</button>
-      </li>
-    </ul>
-    <!-- 添加新事件 -->
-    <button @click="addEvent" @mousedown.prevent>添加事件</button>
-    <!-- 番茄钟组件 -->
-  </div>
-</template>
-
-<script setup>
-import { ref, nextTick } from 'vue'
+<script setup lang="ts">
+import { nextTick, ref } from 'vue'
+import * as API from '../api/index'
 
 // 事件列表及编辑状态
-const events = ref([{ name: '事件 1' }, { name: '事件 2' }])
+const tasks = ref<Task[]>([])
 const editingIndex = ref(-1)
 
-const eventInputs = ref([])
+const taskInputs = ref<any>([])
+
+async function getTasks() {
+  const tasks = await API.fetchTasks()
+  if (tasks) {
+    tasks.value = tasks
+  }
+}
+getTasks()
+
 // 添加事件
-const addEvent = () => {
-  events.value.push({ name: '' })
-  editingIndex.value = events.value.length - 1
-  nextTick(()=>{
-    eventInputs.value[editingIndex.value].focus()
+async function addTask() {
+  // 处理id:列表最大id+1
+  // createAt, updatedAt相同
+  // TODO:status当前默认永久
+  // const newTask = {}
+  // await API.addTask()
+  // await getTasks()
+
+  editingIndex.value = tasks.value.length - 1
+  nextTick(() => {
+    taskInputs.value[editingIndex.value].focus()
   })
 }
 
 // 删除事件
-const removeEvent = (index) => {
-  console.log('triggered')
-  events.value.splice(index, 1)
+function removeTask(index: number) {
+  tasks.value.splice(index, 1)
   if (editingIndex.value >= index) {
     editingIndex.value = -1
   }
 }
 
 // 编辑事件
-const editEvent = (index) => {
+function editTask(index: number) {
   editingIndex.value = index
 
   // // 等待DOM更新后聚焦输入框
   nextTick(() => {
-    console.log(eventInputs.value,index)
-    eventInputs.value[index].focus()
+    taskInputs.value[index].focus()
   })
 }
 
 // 完成编辑
-const finishEditing = () => {
-  if (editingIndex.value !== -1 && events.value[editingIndex.value].name.trim() === '') {
-    removeEvent(editingIndex.value) // 删除空白的事件条目
+function finishEditing() {
+  if (editingIndex.value !== -1 && tasks.value[editingIndex.value].name.trim() === '') {
+    removeTask(editingIndex.value) // 删除空白的事件条目
   }
   editingIndex.value = -1
 }
+
+function startTimer() {
+
+}
 </script>
 
-<style scoped>
-.event-list {
+<template>
+  <div class="task-list">
+    <!-- 显示事件列表 -->
+    <ul>
+      <li
+        v-for="(task, index) in tasks"
+        :key="index"
+        @click="startTimer"
+      >
+        <input
+          v-show="editingIndex === index"
+          ref="taskInputs"
+          v-model="task.name"
+          @keyup.enter="finishEditing"
+          @blur="finishEditing"
+        >
+        <span v-show="editingIndex !== index">{{ task.name }}</span>
+        <button @click="editTask(index)">
+          编辑
+        </button>
+        <button
+          @click="removeTask(index)"
+          @mousedown.prevent
+        >
+          删除
+        </button>
+      </li>
+    </ul>
+    <!-- 添加新事件 -->
+    <button
+      @click="addTask"
+      @mousedown.prevent
+    >
+      添加事件
+    </button>
+    <!-- 番茄钟组件 -->
+  </div>
+</template>
+
+<style scoped lang="scss">
+.task-list {
   background: rgba(0, 0, 0, 0);
   color: #ffffff;
 }
@@ -100,7 +134,8 @@ input {
   border: 1px solid #ccc;
   border-radius: 5px;
 }
-span{
-  color:black
+
+span {
+  color: black
 }
 </style>

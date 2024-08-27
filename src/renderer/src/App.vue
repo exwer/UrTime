@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import EventList from './components/EventList.vue'
-
-
-const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 </script>
 
 <template>
